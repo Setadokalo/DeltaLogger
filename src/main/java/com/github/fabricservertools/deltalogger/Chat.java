@@ -57,11 +57,17 @@ public class Chat {
 	}
 
 	public static MutableText joinText(MutableText... texts) {
-		MutableText out = new LiteralText("");
-		for (int i = 0; i < texts.length; i++) {
-			out.append(" ").append(texts[i]);
+		try {
+			MutableText out = new LiteralText("");
+			for (int i = 0; i < texts.length; i++) {
+				out.append(" ").append(texts[i]);
+			}
+			return out;
+			
+		} catch (IndexOutOfBoundsException e) {
+			e.printStackTrace();
+			throw e;
 		}
-		return out;
 	}
 
 	public static MutableText concat(String sep, MutableText t1, MutableText t2) {

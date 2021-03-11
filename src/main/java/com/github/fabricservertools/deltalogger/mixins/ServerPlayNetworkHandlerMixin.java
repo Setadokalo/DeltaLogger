@@ -68,45 +68,56 @@ public abstract class ServerPlayNetworkHandlerMixin {
 
     @Inject(at = @At("HEAD"), method = "onClickSlot")
     public void onSlotClickHead(ClickSlotC2SPacket packet, CallbackInfo info) {
-        UUID uuid = ((NbtUuid) player.currentScreenHandler).getNbtUuid();
+		try {
+			UUID uuid = ((NbtUuid) player.currentScreenHandler).getNbtUuid();
 
-        if (uuid != this.screenHandlerUUID) commit();
-        this.screenHandlerUUID = uuid;
+			if (uuid != this.screenHandlerUUID) commit();
+			this.screenHandlerUUID = uuid;
 
-        if (uuid != null) {
-            List<ItemStack> stacks = player.currentScreenHandler.getStacks();
-            if (tracked == null) {
-                final int playerSlotStartIndex = stacks.size() - 9 * 4;
-                tracked = new ItemStack[playerSlotStartIndex]; // Only record slots that are not in the player inventory
-            }
-            for (int i = 0; i < tracked.length; i++) {
-                if (tracked[i] == null || !ItemStack.areEqual(tracked[i], stacks.get(i))) {
-                    tracked[i] = stacks.get(i).copy();
-                }
-            }
-        }
+			if (uuid != null) {
+				List<ItemStack> stacks = player.currentScreenHandler.getStacks();
+				if (tracked == null) {
+					final int playerSlotStartIndex = stacks.size() - 9 * 4;
+					tracked = new ItemStack[playerSlotStartIndex]; // Only record slots that are not in the player inventory
+				}
+				for (int i = 0; i < tracked.length; i++) {
+					if (tracked[i] == null || !ItemStack.areEqual(tracked[i], stacks.get(i))) {
+						tracked[i] = stacks.get(i).copy();
+					}
+				}
+			}
+		} catch (IndexOutOfBoundsException e) {
+			e.printStackTrace();
+			throw e;
+		}
     }
 
     @Inject(at = @At("RETURN"), method = "onClickSlot")
     public void onSlotClickReturn(ClickSlotC2SPacket packet, CallbackInfo info) {
-        UUID uuid = ((NbtUuid) player.currentScreenHandler).getNbtUuid();
-        if (uuid != null) {
-            for (int i = 0; i < this.tracked.length; ++i) {
-                ItemStack current = player.currentScreenHandler.getSlot(i).getStack();
-                ItemStack prev = tracked[i];
-                if (!ItemStack.areEqual(prev, current)) {
-                    if (prev.isItemEqual(current) || current.isEmpty() || prev.isEmpty()) {
-                        // if same item then subtract and do transaction
-                        Item item = prev.isEmpty() ? current.getItem() : prev.getItem();
-                        modified.add(new Pair<>(item, current.getCount() - prev.getCount()));
-                    } else {
-                        // else treat as item swap
-                        modified.add(new Pair<>(prev.getItem(), -prev.getCount()));
-                        modified.add(new Pair<>(current.getItem(), current.getCount()));
-                    }
-                    tracked[i] = current.copy();
-                }
-            }
-        }
+		try {
+			UUID uuid = ((NbtUuid) player.currentScreenHandler).getNbtUuid();
+			if (uuid != null) {
+				for (int i = 0; i < this.tracked.length; ++i) {
+					ItemStack current = player.currentScreenHandler.getSlot(i).getStack();
+					ItemStack prev = tracked[i];
+					if (!ItemStack.areEqual(prev, current)) {
+						if (prev.isItemEqual(current) || current.isEmpty() || prev.isEmpty()) {
+							// if same item then subtract and do transaction
+							Item item = prev.isEmpty() ? current.getItem() : prev.getItem();
+							modified.add(new Pair<>(item, current.getCount() - prev.getCount()));
+						} else {
+							// else treat as item swap
+							modified.add(new Pair<>(prev.getItem(), -prev.getCount()));
+							modified.add(new Pair<>(current.getItem(), current.getCount()));
+						}
+						tracked[i] = current.copy();
+					}
+				}
+			}
+
+		} catch (IndexOutOfBoundsException e) {
+			e.printStackTrace();
+			throw e;
+		}
     }
 }

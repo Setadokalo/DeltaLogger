@@ -153,8 +153,13 @@ public class RollbackCommand {
 	}
 
 	private static Identifier createIdentifier(String identifier) {
-		String[] identifierSplit = identifier.split(":");
-		return new Identifier(identifierSplit[0], identifierSplit[1]);
+		try {
+			String[] identifierSplit = identifier.split(":");
+			return new Identifier(identifierSplit[0], identifierSplit[1]);
+		} catch (IndexOutOfBoundsException e) {
+			e.printStackTrace();
+			throw e;
+		}
 	}
 
 	private static Item getItem(Identifier id) {

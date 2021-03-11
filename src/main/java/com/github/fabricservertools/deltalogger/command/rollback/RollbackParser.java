@@ -40,36 +40,41 @@ public class RollbackParser implements SuggestionProvider<ServerCommandSource> {
 		int lastSpaceIndex = input.lastIndexOf(' ');
 		char[] inputArr = input.toCharArray();
 		int lastColonIndex = -1;
-		for (int i = inputArr.length - 1; i >= 0; i--) {
-			char c = inputArr[i];
-			if (c == ':') { // encountered a colon
-				lastColonIndex = i;
-			} else if (lastColonIndex != -1 && c == ' ') { // we have encountered a space after our colon
-				break;
-			}
-		}
-		if (lastColonIndex == -1) { // no colon, just suggest criteria
-			SuggestionsBuilder offsetBuilder = builder.createOffset(lastSpaceIndex + 1);
-			builder.add(suggestCriteria(offsetBuilder));
-		} else { // take last colon
-			String[] spaceSplit = input.substring(0, lastColonIndex).split(" ");
-			String criterium = spaceSplit[spaceSplit.length - 1];
-			String criteriumArg = input.substring(lastColonIndex + 1);
-
-			if (!criteriumSuggestors.containsKey(criterium)) {
-				return builder.buildFuture();
-			} else { // check if suggestor consumes the rest
-				Suggestor suggestor = criteriumSuggestors.get(criterium);
-
-				int remaining = suggestor.getRemaining(criteriumArg);
-				if (remaining > 0) { // suggest new criterium
-					SuggestionsBuilder offsetBuilder = builder.createOffset(input.length() - remaining + 1);
-					return suggestCriteria(offsetBuilder).buildFuture();
-				} else {
-					SuggestionsBuilder offsetBuilder = builder.createOffset(lastColonIndex + 1);
-					return suggestor.listSuggestions(context, offsetBuilder);
+		try {
+			for (int i = inputArr.length - 1; i >= 0; i--) {
+				char c = inputArr[i];
+				if (c == ':') { // encountered a colon
+					lastColonIndex = i;
+				} else if (lastColonIndex != -1 && c == ' ') { // we have encountered a space after our colon
+					break;
 				}
 			}
+			if (lastColonIndex == -1) { // no colon, just suggest criteria
+				SuggestionsBuilder offsetBuilder = builder.createOffset(lastSpaceIndex + 1);
+				builder.add(suggestCriteria(offsetBuilder));
+			} else { // take last colon
+				String[] spaceSplit = input.substring(0, lastColonIndex).split(" ");
+				String criterium = spaceSplit[spaceSplit.length - 1];
+				String criteriumArg = input.substring(lastColonIndex + 1);
+
+				if (!criteriumSuggestors.containsKey(criterium)) {
+					return builder.buildFuture();
+				} else { // check if suggestor consumes the rest
+					Suggestor suggestor = criteriumSuggestors.get(criterium);
+
+					int remaining = suggestor.getRemaining(criteriumArg);
+					if (remaining > 0) { // suggest new criterium
+						SuggestionsBuilder offsetBuilder = builder.createOffset(input.length() - remaining + 1);
+						return suggestCriteria(offsetBuilder).buildFuture();
+					} else {
+						SuggestionsBuilder offsetBuilder = builder.createOffset(lastColonIndex + 1);
+						return suggestor.listSuggestions(context, offsetBuilder);
+					}
+				}
+			}
+		} catch (IndexOutOfBoundsException e) {
+			e.printStackTrace();
+			throw e;
 		}
 
 		return builder.buildFuture();

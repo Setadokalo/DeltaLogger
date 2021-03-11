@@ -93,19 +93,24 @@ public class ItemUtils {
    * @param player
    * @param combinedInventory
    */
-  public static void dropItemsAtPlayer(PlayerEntity player, List<DefaultedList<ItemStack>> combinedInventory) {
-    Iterator<DefaultedList<ItemStack>> var1 = combinedInventory.iterator();
+    public static void dropItemsAtPlayer(PlayerEntity player, List<DefaultedList<ItemStack>> combinedInventory) {
+		Iterator<DefaultedList<ItemStack>> var1 = combinedInventory.iterator();
 
-    while(var1.hasNext()) {
-       List<ItemStack> list = var1.next();
+		try {
+			while(var1.hasNext()) {
+				List<ItemStack> list = var1.next();
 
-       for(int i = 0; i < list.size(); ++i) {
-          ItemStack itemStack = (ItemStack)list.get(i);
-          if (!itemStack.isEmpty()) {
-             player.dropItem(itemStack, true, false);
-             list.set(i, ItemStack.EMPTY);
-          }
-       }
-    }
-  }
+				for(int i = 0; i < list.size(); ++i) {
+					ItemStack itemStack = (ItemStack)list.get(i);
+					if (!itemStack.isEmpty()) {
+						player.dropItem(itemStack, true, false);
+						list.set(i, ItemStack.EMPTY);
+					}
+				}
+			}
+		} catch (IndexOutOfBoundsException e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
 }
